@@ -1,0 +1,163 @@
+/* ===== Signup Specific CSS (inherits base auth look) ===== */
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-md);
+    position: relative;
+    z-index: 1;
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 440px;
+    perspective: 1000px;
+}
+
+.auth-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(24px);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem 2rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.auth-logo {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.3));
+    animation: float 6s ease-in-out infinite;
+    color: var(--accent-primary);
+}
+
+.auth-logo svg {
+    width: 48px;
+    height: 48px;
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+.auth-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin-bottom: 0.25rem;
+    background: linear-gradient(to right, #fff, #a5b4fc);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.auth-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+/* Compact inputs for Signup */
+.auth-form .form-input {
+    padding: 10px 14px;
+    min-height: 42px;
+    font-size: 0.95rem;
+}
+
+.auth-form .form-label {
+    margin-bottom: 2px;
+    font-size: 0.8rem;
+}
+
+.auth-footer {
+    margin-top: 1.5rem;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.auth-footer a {
+    color: var(--accent-secondary);
+    font-weight: 600;
+}
+
+.input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+    transition: color var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.input-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+.auth-form .input-with-icon .form-input {
+    padding-left: 44px;
+}
+
+.input-with-icon input:focus~.input-icon {
+    color: var(--accent-primary);
+}
+
+/* Fix button height to match compact input */
+.input-with-icon .btn {
+    min-height: 42px;
+    height: 42px;
+    padding: 0 1rem;
+}
+
+@media (max-width: 640px) {
+    .auth-card {
+        padding: 1.5rem 1rem;
+    }
+}

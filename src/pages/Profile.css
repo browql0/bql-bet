@@ -1,0 +1,289 @@
+/* ===== Profile Cyber-Tech Styles ===== */
+
+/* Profile Header - Holo ID Style */
+.profile-header {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    background: rgba(15, 15, 20, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 24px;
+    margin-bottom: 2.5rem;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+}
+
+.profile-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(99, 102, 241, 0.05), transparent);
+    pointer-events: none;
+}
+
+/* Tech Scanner Line */
+.profile-header::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
+    animation: textScan 3s ease-in-out infinite;
+    opacity: 0.5;
+}
+
+@keyframes textScan {
+
+    0%,
+    100% {
+        transform: translateY(0);
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(200px);
+        opacity: 0;
+    }
+}
+
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    font-size: 2.5rem;
+    border-radius: 24px;
+    /* Squircle */
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.2);
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-secondary);
+    color: white;
+    position: relative;
+    z-index: 2;
+}
+
+.profile-name {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #fff;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    position: relative;
+    z-index: 2;
+}
+
+.profile-role {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    position: relative;
+    z-index: 2;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.profile-role svg {
+    width: 16px;
+    height: 16px;
+    color: var(--accent-primary);
+}
+
+/* Info Grid - Data Chips */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 3rem;
+}
+
+.info-item {
+    background: rgba(18, 18, 23, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 1.25rem;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.info-item:hover {
+    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.info-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.info-value {
+    font-size: 1.2rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: #fff;
+    font-weight: 700;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 1.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--accent-gradient);
+    opacity: 0.7;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    color: #fff;
+    margin-bottom: 0.25rem;
+    text-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Voter List - Data Feed */
+.results-section {
+    margin-top: 2rem;
+}
+
+.results-title {
+    font-size: 1.2rem;
+    color: #fff;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.results-title svg {
+    color: var(--accent-primary);
+}
+
+.voter-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.voter-item {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.voter-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+    transform: translateX(4px);
+    border-left: 2px solid var(--accent-secondary);
+}
+
+.voter-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.voter-icon {
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+}
+
+.voter-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.voter-prediction {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.voter-prediction span {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+.voter-prediction svg {
+    color: var(--accent-primary);
+    opacity: 0.7;
+}
+
+@media (max-width: 640px) {
+
+    .info-grid,
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .profile-header {
+        padding: 2rem 1rem;
+    }
+
+    .voter-prediction {
+        gap: 1rem;
+    }
+}

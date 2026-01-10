@@ -1,0 +1,424 @@
+/* ===== Dashboard Cyber-Tech Styles ===== */
+
+/* Page Header */
+/* Page Header */
+.page-header {
+    display: flex;
+    flex-direction: column;
+    /* Stack vertically */
+    align-items: center;
+    /* Center horizontally */
+    text-align: center;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+    position: relative;
+}
+
+.page-header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    /* Center the line */
+    transform: translateX(-50%);
+    width: 100px;
+    height: 1px;
+    background: var(--accent-primary);
+    box-shadow: 0 0 10px var(--accent-primary);
+}
+
+.page-header-icon {
+    width: 64px;
+    height: 64px;
+    background: rgba(15, 15, 20, 0.8);
+    border: 1px solid var(--accent-primary);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-primary);
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.2), inset 0 0 20px rgba(99, 102, 241, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.page-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.02em;
+    color: #fff;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+.page-subtitle {
+    margin-top: 0.5rem;
+    font-size: 1rem;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    /* Tech feel */
+    opacity: 0.8;
+}
+
+/* Search Bar - Data Input */
+.search-input {
+    position: relative;
+    margin-bottom: 3rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.search-input input {
+    width: 100%;
+    padding: 1.25rem 1.5rem 1.25rem 3.5rem;
+    font-size: 1rem;
+    font-family: var(--font-body);
+    background: rgba(10, 10, 15, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: #fff;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.search-input input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    background: rgba(10, 10, 16, 0.9);
+    box-shadow: 0 0 0 1px var(--accent-primary), 0 0 20px rgba(99, 102, 241, 0.3);
+    transform: translateY(-1px);
+}
+
+.search-icon {
+    position: absolute;
+    left: 1.25rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    transition: color 0.3s ease;
+}
+
+.search-input input:focus+.search-icon {
+    color: var(--accent-primary);
+}
+
+/* Voting Banner - System Alert */
+.voting-banner {
+    background: rgba(20, 15, 10, 0.9);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    border-left: 4px solid var(--warning);
+    border-radius: 4px;
+    /* Sharper corners for alert */
+    padding: 1rem;
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    /* Stack for centering */
+    align-items: center;
+    /* Center horizontally */
+    text-align: center;
+    /* Center text */
+    gap: 0.75rem;
+    position: relative;
+    overflow: hidden;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.voting-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(45deg,
+            transparent,
+            transparent 10px,
+            rgba(245, 158, 11, 0.05) 10px,
+            rgba(245, 158, 11, 0.05) 20px);
+    pointer-events: none;
+}
+
+.banner-icon {
+    color: var(--warning);
+    background: rgba(245, 158, 11, 0.1);
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.banner-content strong {
+    display: block;
+    color: var(--warning);
+    font-size: 0.75rem;
+    /* Reduced from 0.85rem */
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+    font-family: var(--font-mono);
+}
+
+.banner-content span {
+    font-size: 0.85rem;
+    /* Reduced from 0.9rem */
+    color: var(--text-secondary);
+}
+
+
+/* Student Grid - Holo Cards */
+.student-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.student-card {
+    background: rgba(18, 18, 23, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
+    backdrop-filter: blur(12px);
+}
+
+.student-card:hover {
+    background: rgba(25, 25, 35, 0.8);
+    border-color: var(--accent-primary);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--accent-primary);
+}
+
+.student-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    background: linear-gradient(120deg, transparent 40%, rgba(255, 255, 255, 0.05) 50%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.student-card:hover::before {
+    opacity: 1;
+}
+
+.student-card.voted {
+    border-color: var(--success);
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.student-card.voted:hover {
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--success);
+}
+
+.student-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.student-avatar {
+    width: 48px;
+    height: 48px;
+    background: var(--bg-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    position: relative;
+}
+
+.student-avatar::after {
+    content: '';
+    /* Status dot */
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 10px;
+    height: 10px;
+    background: #333;
+    /* Offline by default */
+    border: 2px solid var(--bg-card);
+    border-radius: 50%;
+}
+
+.student-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 2px;
+}
+
+.student-status {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Vote Form - Digital Inputs */
+.vote-form {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    padding: 1.25rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.vote-field label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-align: center;
+    display: block;
+    margin-bottom: 0.75rem;
+    opacity: 0.8;
+}
+
+.vote-field input {
+    background: rgba(10, 10, 15, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: var(--accent-secondary);
+    /* Digital cyan text */
+    font-family: 'JetBrains Mono', monospace;
+    /* Monospace for numbers */
+    font-size: 1.5rem;
+    font-weight: 700;
+    width: 100%;
+    padding: 10px;
+    text-align: center;
+    transition: all 0.2s ease;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.vote-field input:focus {
+    border-color: var(--accent-secondary);
+    background: rgba(10, 10, 15, 1);
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.4);
+    outline: none;
+    color: #fff;
+}
+
+/* Empty State - System Pulse */
+.empty-state {
+    display: flex;
+    justify-content: center;
+    padding: 4rem 0;
+    width: 100%;
+}
+
+.empty-state-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 400px;
+    position: relative;
+}
+
+.empty-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+    /* Circle for radar effect */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+    /* Contain the scanline */
+}
+
+.empty-icon-wrapper::before {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    border-radius: 50%;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    animation: radar 3s linear infinite;
+    opacity: 0;
+}
+
+/* Scanline effect */
+.empty-icon-wrapper::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
+    animation: scan 2s linear infinite;
+    opacity: 0.8;
+    box-shadow: 0 0 10px var(--accent-primary);
+}
+
+@keyframes radar {
+    0% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+
+    100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+@keyframes scan {
+    0% {
+        top: 0;
+        opacity: 0;
+    }
+
+    20% {
+        opacity: 1;
+    }
+
+    80% {
+        opacity: 1;
+    }
+
+    100% {
+        top: 100%;
+        opacity: 0;
+    }
+}
+
+.empty-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.02em;
+}
+
+.empty-text {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    /* Tech font */
+    line-height: 1.6;
+}
