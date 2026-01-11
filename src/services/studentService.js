@@ -75,11 +75,8 @@ export const getStudentByName = (name) => {
 const _legacyIsMatriculeAlreadyUsed = async (matricule) => {
     try {
         if (!matricule) {
-            console.warn('⚠️ Matricule vide fourni à isMatriculeAlreadyUsed');
             return false;
         }
-
-        console.log('🔍 Vérification matricule:', matricule);
 
         // Safety: Timeout after 5s
         const timeout = new Promise((_, reject) =>
@@ -100,23 +97,9 @@ const _legacyIsMatriculeAlreadyUsed = async (matricule) => {
             return true; // Considère comme déjà utilisé pour sécurité
         }
 
-        const isUsed = data && data.length > 0;
-
-        if (isUsed) {
-            console.log('⛔ Matricule déjà utilisé:', matricule, '- Compte:', data[0].full_name);
-        } else {
-            console.log('✅ Matricule disponible:', matricule);
-        }
-
-        return isUsed;
+        return data && data.length > 0;
     } catch (error) {
-        if (error.message === 'Timeout Supabase') {
-            console.error('⏱️ Timeout lors de la vérification du matricule');
-            // En cas de timeout, bloquer par sécurité
-            return true;
-        }
-        console.error('❌ Erreur lors de la vérification du matricule:', error);
-        // En cas d'erreur, on bloque par sécurité
+        // En cas de timeout ou erreur, bloquer par sécurité
         return true;
     }
 };
@@ -135,7 +118,6 @@ export const checkStudentStatus = async (matricule) => {
         const result = data && data[0] ? data[0] : { valid: false, available: false };
         return { error: null, ...result };
     } catch (error) {
-        console.error('Erreur RPC check_student_eligibility:', error);
         // Fallback sécurité: on bloque si erreur
         return { valid: false, available: false, error: error.message };
     }
@@ -223,7 +205,6 @@ export const isMatriculeAlreadyUsed = async (matricule) => {
         const { available } = await checkStudentStatus(matricule);
         return !available;
     } catch (error) {
-        console.error('Erreur lors de la vérification du matricule:', error);
         // En cas d'erreur, bloquer par sécurité
         return true;
     }

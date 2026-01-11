@@ -18,7 +18,6 @@ export const getAllSettings = async () => {
 
         return { data: settingsMap, error: null };
     } catch (error) {
-        console.error('Erreur chargement settings:', error);
         return { data: {}, error: error.message };
     }
 };

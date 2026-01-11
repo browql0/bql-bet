@@ -63,8 +63,6 @@ export const signUp = async (email, password, studentInfo) => {
 
         // Si le profil n'existe pas, le créer manuellement
         if (!existingProfile) {
-            console.log('📝 Création manuelle du profil pour:', authData.user.id);
-            
             // Préparer les données du profil
             const profileData = {
                 id: authData.user.id,
@@ -87,12 +85,9 @@ export const signUp = async (email, password, studentInfo) => {
                 .insert(profileData);
 
             if (profileError) {
-                console.error('❌ Erreur création profil:', profileError);
                 // Ne pas bloquer l'inscription si l'insertion échoue (peut être un problème de permissions)
                 // Le trigger devrait créer le profil, ou un admin pourra le faire
                 // Mais on retourne quand même le succès pour que l'utilisateur puisse se connecter
-            } else {
-                console.log('✅ Profil créé avec succès et marqué comme actif');
             }
         } else {
             // Si le profil existe déjà, s'assurer qu'il est actif pour apparaître dans les votes
@@ -101,16 +96,11 @@ export const signUp = async (email, password, studentInfo) => {
                 .update({ active: true })
                 .eq('id', authData.user.id);
 
-            if (updateError) {
-                console.warn('⚠️ Impossible de mettre à jour active:', updateError.message);
-            } else {
-                console.log('✅ Profil mis à jour: active=true');
-            }
+            // Silently continue - profile exists
         }
 
         return { data: authData, error: null };
     } catch (error) {
-        console.error('Erreur inscription:', error);
         return { data: null, error: error.message };
     }
 };
@@ -137,7 +127,6 @@ export const signOut = async () => {
 
         keysToRemove.forEach(key => {
             localStorage.removeItem(key);
-            console.log('🧹 Removed:', key);
         });
 
         return { error };

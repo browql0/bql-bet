@@ -21,7 +21,7 @@ export const getMyPredictions = async (userId) => {
                 try {
                     pred.votes_data = JSON.parse(pred.votes_data);
                 } catch (err) {
-                    console.warn('Erreur parsing votes_data:', err);
+                    // Invalid JSON, use as is
                 }
             }
             return pred;
@@ -90,7 +90,7 @@ export const submitPrediction = async (voterId, targetId, modules, rattrapages, 
             try {
                 predictionData.votes_data = typeof votesData === 'string' ? votesData : JSON.stringify(votesData);
             } catch (err) {
-                console.warn('Impossible de stocker votes_data, utilisation du format standard');
+                // Silently continue without votes_data
             }
         }
 
@@ -112,7 +112,6 @@ export const submitPrediction = async (voterId, targetId, modules, rattrapages, 
             errorMessage = 'Vous avez déjà voté pour cet étudiant. Les votes ne peuvent pas être modifiés.';
         }
 
-        console.error('Erreur vote:', error);
         return { success: false, error: errorMessage };
     }
 };
@@ -161,7 +160,6 @@ export const calculateUserStats = async (userId) => {
             avgRattrapages: parseFloat(avgRattrapages.toFixed(1))
         };
     } catch (error) {
-        console.error('Erreur calcul stats:', error);
         return { totalVotes: 0, avgModules: 0, avgRattrapages: 0 };
     }
 };
@@ -245,7 +243,6 @@ export const getGlobalStats = async () => {
             avgRattrapages: parseFloat(avgRattrapages.toFixed(1))
         };
     } catch (error) {
-        console.error('Erreur stats globales:', error);
         return null;
     }
 };

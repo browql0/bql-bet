@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { authService } from '../services/authService'
 import { GraduationCap, Mail, Lock } from 'lucide-react'
+import { sanitizeString, isValidEmail, createSubmissionLock } from '../utils/validation'
 import './Login.css'
 
 export default function Login({ onNavigate, setUser }) {
@@ -8,14 +9,22 @@ export default function Login({ onNavigate, setUser }) {
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
+    const submissionLock = useRef(createSubmissionLock())
 
     const handleLogin = async (e) => {
         e.preventDefault()
+        
+        // Prevent double submission
+        if (submissionLock.current.isSubmitting()) {
+            return
+        }
+
         setLoading(true)
         setError('')
 
-        // Validation client-side
-        if (!email.trim()) {
+        // Sanitize and validate inputs
+        const sanitizedEmail = sanitizeString(email)
+        if (!sanitizedEmail) {
             setError('Veuillez entrer votre email')
             setLoading(false)
             return
@@ -27,30 +36,31 @@ export default function Login({ onNavigate, setUser }) {
             return
         }
 
-        // Validation email basique
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!emailRegex.test(email.trim())) {
+        // Validate email format
+        if (!isValidEmail(sanitizedEmail)) {
             setError('Format d\'email invalide')
             setLoading(false)
             return
         }
 
         try {
-            const { error: authError } = await authService.signIn(email.trim(), password)
+            await submissionLock.current.execute(async () => {
+                const { error: authError } = await authService.signIn(sanitizedEmail, password)
 
-            if (authError) {
-                setError(authError)
-                setLoading(false)
-                return
-            }
+                if (authError) {
+                    setError(authError)
+                    setLoading(false)
+                    return
+                }
 
-            // Succès : AuthContext détectera le changement de session et App.jsx affichera le Dashboard via le re-render.
-            // On nettoie juste le flag de logout manuellement par sécurité.
-            localStorage.removeItem('user-logged-out')
-
+                // Succès : AuthContext détectera le changement de session et App.jsx affichera le Dashboard via le re-render.
+                // On nettoie juste le flag de logout manuellement par sécurité.
+                localStorage.removeItem('user-logged-out')
+            })
         } catch (err) {
-            console.error('Erreur connexion:', err)
-            setError(err.message || 'Erreur de connexion. Veuillez réessayer.')
+            if (err.message !== 'Une soumission est déjà en cours') {
+                setError(err.message || 'Erreur de connexion. Veuillez réessayer.')
+            }
             setLoading(false)
         }
     }
@@ -81,12 +91,13 @@ export default function Login({ onNavigate, setUser }) {
                                     className="form-input"
                                     placeholder="exemple@etudiant.univ"
                                     value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
+                                    onChange={(e) => setEmail(sanitizeString(e.target.value))}
                                     required
                                     autoComplete="email"
                                     aria-label="Email étudiant"
                                     aria-invalid={error && error.includes('email') ? 'true' : 'false'}
                                     disabled={loading}
+                                    maxLength={254}
                                 />
                             </div>
                         </div>

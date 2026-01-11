@@ -24,8 +24,7 @@ export default function Results({ user }) {
         try {
             // Charger les settings et données en parallèle
             const [settingsResult, votableResult, predictionsResult] = await Promise.all([
-                settingsService.getAllSettings().catch(err => {
-                    console.warn('Erreur chargement settings:', err)
+                settingsService.getAllSettings().catch(() => {
                     return { data: {} }
                 }),
                 profilesService.getAllVotableUsers().catch(err => {
@@ -76,7 +75,6 @@ export default function Results({ user }) {
             setResults(resultsData)
             setError(null)
         } catch (err) {
-            console.error('Erreur chargement résultats:', err)
             setError('Erreur lors du chargement des résultats. Veuillez réessayer.')
         } finally {
             clearTimeout(safetyTimer)

@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { studentService } from '../services/studentService'
 import { authService } from '../services/authService'
 import { Rocket, User, Search, Check, Mail, Lock, Key, GraduationCap } from 'lucide-react'
+import { sanitizeString, isValidEmail, isValidPassword, isValidStudentName, createSubmissionLock } from '../utils/validation'
 import './Signup.css'
 
 export default function Signup({ onNavigate }) {
@@ -16,33 +17,47 @@ export default function Signup({ onNavigate }) {
     const [success, setSuccess] = useState(false)
 
     const [foundStudent, setFoundStudent] = useState(null)
+    const submissionLock = useRef(createSubmissionLock())
+    const checkLock = useRef(createSubmissionLock())
 
     // Vérifier le nom dans la liste
     const checkName = async () => {
-        if (!name.trim()) return
+        // Prevent double submission
+        if (checkLock.current.isSubmitting()) {
+            return
+        }
+
+        const sanitizedName = sanitizeString(name)
+        if (!sanitizedName) {
+            setError('Veuillez entrer un nom valide')
+            return
+        }
+
+        if (!isValidStudentName(sanitizedName)) {
+            setError('Le nom doit contenir entre 2 et 150 caractères')
+            return
+        }
 
         setChecking(true)
         setError('')
         setFoundStudent(null)
 
         try {
-            console.log('🔍 Vérification du nom:', name);
-            const result = await studentService.validateAndCheckName(name)
-            console.log('📋 Résultat validation:', result);
+            await checkLock.current.execute(async () => {
+                const result = await studentService.validateAndCheckName(sanitizedName)
 
-            if (!result.valid) {
-                console.warn('⚠️ Nom invalide:', result.error);
-                setError(result.error)
-            } else if (!result.available) {
-                console.warn('⛔ Nom non disponible:', result.error);
-                setError(result.error)
-            } else {
-                console.log('✅ Étudiant trouvé et disponible:', result.studentInfo);
-                setFoundStudent(result.studentInfo)
-            }
+                if (!result.valid) {
+                    setError(result.error)
+                } else if (!result.available) {
+                    setError(result.error)
+                } else {
+                    setFoundStudent(result.studentInfo)
+                }
+            })
         } catch (err) {
-            console.error('❌ Erreur lors de la vérification du nom:', err)
-            setError('Erreur de connexion au serveur. Veuillez réessayer.')
+            if (err.message !== 'Une soumission est déjà en cours') {
+                setError('Erreur de connexion au serveur. Veuillez réessayer.')
+            }
         } finally {
             setChecking(false)
         }
@@ -50,6 +65,12 @@ export default function Signup({ onNavigate }) {
 
     const handleSignup = async (e) => {
         e.preventDefault()
+        
+        // Prevent double submission
+        if (submissionLock.current.isSubmitting()) {
+            return
+        }
+
         setLoading(true)
         setError('')
 
@@ -60,16 +81,17 @@ export default function Signup({ onNavigate }) {
             return
         }
 
-        // Validation email
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!emailRegex.test(email.trim())) {
+        // Sanitize and validate email
+        const sanitizedEmail = sanitizeString(email)
+        if (!sanitizedEmail || !isValidEmail(sanitizedEmail)) {
             setError('Format d\'email invalide')
             setLoading(false)
             return
         }
 
-        if (password.length < 6) {
-            setError('Le mot de passe doit contenir au moins 6 caractères')
+        // Validate password
+        if (!isValidPassword(password)) {
+            setError('Le mot de passe doit contenir entre 6 et 128 caractères')
             setLoading(false)
             return
         }
@@ -80,17 +102,27 @@ export default function Signup({ onNavigate }) {
             return
         }
 
-        // Appel service inscription
-        const { error: signupError } = await authService.signUp(email, password, foundStudent)
+        try {
+            await submissionLock.current.execute(async () => {
+                // Appel service inscription
+                const { error: signupError } = await authService.signUp(sanitizedEmail, password, foundStudent)
 
-        if (signupError) {
-            setError(signupError)
-        } else {
-            // ✅ Clear logout flag so session can be restored automatically
-            localStorage.removeItem('user-logged-out')
-            setSuccess(true)
+                if (signupError) {
+                    setError(signupError)
+                    setLoading(false)
+                } else {
+                    // ✅ Clear logout flag so session can be restored automatically
+                    localStorage.removeItem('user-logged-out')
+                    setSuccess(true)
+                    setLoading(false)
+                }
+            })
+        } catch (err) {
+            if (err.message !== 'Une soumission est déjà en cours') {
+                setError('Erreur lors de l\'inscription. Veuillez réessayer.')
+            }
+            setLoading(false)
         }
-        setLoading(false)
     }
 
     if (success) {
@@ -147,7 +179,8 @@ export default function Signup({ onNavigate }) {
                                         placeholder="Votre Nom Complet"
                                         value={name}
                                         onChange={(e) => {
-                                            setName(e.target.value)
+                                            const sanitized = sanitizeString(e.target.value)
+                                            setName(sanitized)
                                             setFoundStudent(null)
                                             setError('')
                                         }}
@@ -155,6 +188,7 @@ export default function Signup({ onNavigate }) {
                                         disabled={loading || checking}
                                         aria-label="Nom complet de l'étudiant"
                                         aria-describedby="name-validation"
+                                        maxLength={150}
                                     />
                                 </div>
                                 <button
@@ -200,12 +234,13 @@ export default function Signup({ onNavigate }) {
                                             className="form-input"
                                             placeholder="exemple@email.com"
                                             value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
+                                            onChange={(e) => setEmail(sanitizeString(e.target.value))}
                                             required
                                             disabled={loading}
                                             autoComplete="email"
                                             aria-label="Email personnel"
                                             aria-invalid={error && error.includes('email') ? 'true' : 'false'}
+                                            maxLength={254}
                                         />
                                     </div>
                                 </div>
@@ -224,6 +259,7 @@ export default function Signup({ onNavigate }) {
                                             disabled={loading}
                                             autoComplete="new-password"
                                             minLength={6}
+                                            maxLength={128}
                                             aria-label="Mot de passe (minimum 6 caractères)"
                                             aria-invalid={error && error.includes('mot de passe') ? 'true' : 'false'}
                                         />
@@ -243,6 +279,8 @@ export default function Signup({ onNavigate }) {
                                             required
                                             disabled={loading}
                                             autoComplete="new-password"
+                                            minLength={6}
+                                            maxLength={128}
                                             aria-label="Confirmation du mot de passe"
                                             aria-invalid={error && error.includes('correspondent') ? 'true' : 'false'}
                                         />

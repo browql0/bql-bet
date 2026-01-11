@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import './Dashboard.css'
 import { profilesService } from '../services/profilesService'
 import { predictionsService } from '../services/predictionsService'
@@ -6,6 +6,7 @@ import { settingsService } from '../services/settingsService'
 import { Search, Users, Vote, Lock, CheckCircle, Clock, Eye } from 'lucide-react'
 import LoadingState from '../components/LoadingState'
 import VoteModal from '../components/VoteModal'
+import { sanitizeString, validateVoteData, createSubmissionLock, debounce } from '../utils/validation'
 
 export default function Dashboard({ user }) {
     if (!user) return <LoadingState text="Chargement du profil..." />
@@ -20,6 +21,15 @@ export default function Dashboard({ user }) {
     const [message, setMessage] = useState({ type: '', text: '' })
     const [selectedStudent, setSelectedStudent] = useState(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const submissionLock = useRef(createSubmissionLock())
+    
+    // Debounced search
+    const debouncedSearch = useMemo(
+        () => debounce((query) => {
+            setSearchQuery(query)
+        }, 300),
+        []
+    )
 
     const loadData = useCallback(async () => {
         if (!user?.id) return
@@ -36,16 +46,14 @@ export default function Dashboard({ user }) {
         try {
             // Charger en parallèle pour meilleure performance
             const [settingsResult, votableResult, votesResult] = await Promise.all([
-                settingsService.getAllSettings().catch(err => {
-                    console.warn('Erreur chargement settings:', err)
+                settingsService.getAllSettings().catch(() => {
                     return { data: {} }
                 }),
                 profilesService.getVotableUsers(user.id).catch(err => {
                     console.error('Erreur chargement étudiants:', err)
                     return { data: [] }
                 }),
-                predictionsService.getMyPredictions(user.id).catch(err => {
-                    console.error('Erreur chargement votes:', err)
+                predictionsService.getMyPredictions(user.id).catch(() => {
                     return { data: [] }
                 })
             ])
@@ -63,7 +71,6 @@ export default function Dashboard({ user }) {
             }))
             
             setStudents(formattedStudents)
-            console.log(`✅ ${formattedStudents.length} étudiant(s) chargé(s) pour le vote`)
 
             // Construire la map des votes
             const votesMap = {}
@@ -73,7 +80,6 @@ export default function Dashboard({ user }) {
             setMyVotes(votesMap)
 
         } catch (err) {
-            console.error('Erreur chargement:', err)
             setMessage({ type: 'error', text: 'Erreur lors du chargement des données. Veuillez réessayer.' })
         } finally {
             clearTimeout(safetyTimer)
@@ -116,37 +122,53 @@ export default function Dashboard({ user }) {
     const handleVoteSubmit = async (voteData) => {
         if (!selectedStudent) return
 
+        // Prevent double submission
+        if (submissionLock.current.isSubmitting()) {
+            setMessage({ type: 'error', text: 'Une soumission est déjà en cours. Veuillez patienter.' })
+            return
+        }
+
+        // Validate vote data
+        const validation = validateVoteData(voteData)
+        if (!validation.valid) {
+            setMessage({ type: 'error', text: validation.error })
+            return
+        }
+
         setSubmitting(selectedStudent.profile_id)
         setMessage({ type: '', text: '' })
 
         try {
-            const { success, error } = await predictionsService.submitPrediction(
-                user.id,
-                selectedStudent.profile_id,
-                voteData.modules,
-                voteData.rattrapages,
-                voteData.votes_data
-            )
+            await submissionLock.current.execute(async () => {
+                const { success, error } = await predictionsService.submitPrediction(
+                    user.id,
+                    selectedStudent.profile_id,
+                    voteData.modules,
+                    voteData.rattrapages,
+                    voteData.votes_data
+                )
 
-            if (success) {
-                // Recharger les votes pour mettre à jour la liste
-                const { data: myVotesData } = await predictionsService.getMyPredictions(user.id)
-                const votesMap = {}
-                myVotesData?.forEach(v => {
-                    votesMap[v.target_id] = v
-                })
-                setMyVotes(votesMap)
+                if (success) {
+                    // Recharger les votes pour mettre à jour la liste
+                    const { data: myVotesData } = await predictionsService.getMyPredictions(user.id)
+                    const votesMap = {}
+                    myVotesData?.forEach(v => {
+                        votesMap[v.target_id] = v
+                    })
+                    setMyVotes(votesMap)
 
-                setIsModalOpen(false)
-                setSelectedStudent(null)
-                setMessage({ type: 'success', text: '✓ Vote enregistré avec succès !' })
-                setTimeout(() => setMessage({ type: '', text: '' }), 4000)
-            } else {
-                setMessage({ type: 'error', text: error || 'Erreur lors de l\'enregistrement du vote' })
-            }
+                    setIsModalOpen(false)
+                    setSelectedStudent(null)
+                    setMessage({ type: 'success', text: '✓ Vote enregistré avec succès !' })
+                    setTimeout(() => setMessage({ type: '', text: '' }), 4000)
+                } else {
+                    setMessage({ type: 'error', text: error || 'Erreur lors de l\'enregistrement du vote' })
+                }
+            })
         } catch (err) {
-            console.error('Erreur vote:', err)
-            setMessage({ type: 'error', text: 'Erreur de connexion. Veuillez réessayer.' })
+            if (err.message !== 'Une soumission est déjà en cours') {
+                setMessage({ type: 'error', text: 'Erreur de connexion. Veuillez réessayer.' })
+            }
         } finally {
             setSubmitting(null)
         }
@@ -159,9 +181,13 @@ export default function Dashboard({ user }) {
         }
     }
 
-    const filteredStudents = students.filter(s =>
-        s.full_name.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    const filteredStudents = useMemo(() => {
+        if (!searchQuery.trim()) return students
+        const query = searchQuery.toLowerCase().trim()
+        return students.filter(s =>
+            s.full_name?.toLowerCase().includes(query)
+        )
+    }, [students, searchQuery])
 
     const votingEnabled = settings.voting_enabled === 'true'
 
@@ -216,8 +242,13 @@ export default function Dashboard({ user }) {
                     type="text"
                     placeholder="Rechercher un étudiant..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                        const sanitized = sanitizeString(e.target.value)
+                        setSearchQuery(sanitized)
+                        debouncedSearch(sanitized)
+                    }}
                     aria-label="Rechercher un étudiant"
+                    maxLength={100}
                 />
             </div>
 

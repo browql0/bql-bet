@@ -19,7 +19,6 @@ export const AuthProvider = ({ children }) => {
             // Sécurité : si Supabase ne répond pas en 5s, on arrête le chargement
             const safetyTimer = setTimeout(() => {
                 if (mounted) {
-                    console.warn('⏱️ Auth check timeout - forcing stop loading')
                     setLoading(false)
                 }
             }, 5000)
@@ -56,10 +55,8 @@ export const AuthProvider = ({ children }) => {
                     }
                 }
             } catch (error) {
-                console.error('Auth Check Error:', error)
                 // 🧹 Nettoyage automatique en cas de token invalide
                 if (error.message && (error.message.includes('Refresh Token Not Found') || error.message.includes('Invalid Refresh Token'))) {
-                    console.warn('⚠️ Token invalide détecté, nettoyage de la session...');
                     await supabase.auth.signOut().catch(() => { }); // Force cleanup interne
                     if (mounted) {
                         setSession(null);
@@ -87,13 +84,8 @@ export const AuthProvider = ({ children }) => {
                     .eq('id', session.user.id)
                     .maybeSingle()
 
-                if (profileError && profileError.code !== 'PGRST116') {
-                    console.error('Erreur chargement profil:', profileError)
-                }
-
                 // Si le profil n'existe pas encore (inscription récente), attendre un peu et réessayer
                 if (!profile) {
-                    console.log('⏳ Profil non trouvé, attente et nouvelle tentative...')
                     setTimeout(async () => {
                         if (mounted) {
                             const { data: retryProfile } = await supabase

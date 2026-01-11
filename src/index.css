@@ -191,6 +191,9 @@ a:hover {
   min-height: 48px;
   position: relative;
   overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
 }
 
 .btn-primary {
@@ -264,6 +267,7 @@ a:hover {
   flex-direction: column;
   gap: 6px;
   position: relative;
+  touch-action: manipulation;
 }
 
 .form-label {
@@ -289,6 +293,8 @@ a:hover {
   color: var(--text-primary);
   transition: all var(--transition-normal);
   min-height: 52px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .form-input:hover:not(:disabled) {
@@ -540,6 +546,31 @@ a:hover {
   }
 }
 
+/* ===== Touch Interactions ===== */
+@media (hover: none) and (pointer: coarse) {
+  /* Mobile/touch devices */
+  .btn:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+  
+  .student-card:active {
+    transform: translateY(-2px) scale(0.98);
+  }
+  
+  /* Larger tap targets on mobile */
+  .nav-item {
+    min-height: 48px;
+    min-width: 48px;
+  }
+  
+  /* Prevent text selection on buttons */
+  button, .btn {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
   html {
@@ -579,4 +610,54 @@ a:hover {
   h3 {
     font-size: 1.1rem;
   }
+  
+  /* Better spacing on small screens */
+  .container {
+    padding: var(--space-md) var(--space-sm);
+  }
+}
+
+/* ===== Accessibility Enhancements ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --border-color: rgba(255, 255, 255, 0.3);
+    --border-color-hover: rgba(255, 255, 255, 0.5);
+  }
+}
+
+/* Focus improvements for keyboard navigation */
+*:focus-visible {
+  outline: 3px solid var(--accent-primary);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* Skip to main content link (accessibility) */
+.skip-to-main {
+  position: absolute;
+  left: -9999px;
+  z-index: 999;
+  padding: 1rem;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  text-decoration: none;
+  border: 2px solid var(--accent-primary);
+  border-radius: var(--radius-md);
+}
+
+.skip-to-main:focus {
+  left: 1rem;
+  top: 1rem;
 }

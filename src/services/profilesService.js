@@ -90,8 +90,6 @@ export const getVotableUsers = async (excludeUserId = null) => {
 
         // Si la vue n'existe pas ou erreur, essayer directement depuis profiles
         if (error && (error.code === '42P01' || error.message?.includes('relation') || error.message?.includes('does not exist'))) {
-            console.warn('Vue votable_users non trouvée, utilisation directe de profiles');
-            
             let profilesQuery = supabase
                 .from('profiles')
                 .select('*')
@@ -122,7 +120,6 @@ export const getVotableUsers = async (excludeUserId = null) => {
 
         return { data: data || [], error: null };
     } catch (error) {
-        console.error('Erreur getVotableUsers:', error);
         return { data: [], error: error.message };
     }
 };

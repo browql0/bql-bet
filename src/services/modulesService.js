@@ -18,7 +18,7 @@ export const getModulesList = async () => {
             try {
                 return { data: JSON.parse(data.value), error: null };
             } catch (parseError) {
-                console.warn('Erreur parsing modules_list, utilisation des modules par défaut');
+                // Use default modules if parsing fails
             }
         }
 
@@ -36,7 +36,6 @@ export const getModulesList = async () => {
 
         return { data: defaultModules, error: null };
     } catch (error) {
-        console.error('Erreur chargement modules:', error);
         // Retourner liste par défaut en cas d'erreur
         return { 
             data: [

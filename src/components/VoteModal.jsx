@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { X, Check, XCircle, Loader2 } from 'lucide-react'
 import { modulesService } from '../services/modulesService'
+import { validateVoteData, createSubmissionLock } from '../utils/validation'
 import './VoteModal.css'
 
 /**
@@ -19,6 +20,7 @@ export default function VoteModal({
     const [votes, setVotes] = useState({}) // { moduleName: 'validated' | 'retake' | null }
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
+    const submissionLock = useRef(createSubmissionLock())
 
     useEffect(() => {
         if (isOpen) {
@@ -35,7 +37,6 @@ export default function VoteModal({
             if (modulesError) throw modulesError
             setModules(data || [])
         } catch (err) {
-            console.error('Erreur chargement modules:', err)
             setError('Erreur lors du chargement des matières')
         } finally {
             setLoading(false)
@@ -51,7 +52,6 @@ export default function VoteModal({
                     : existingVote.votes_data
                 setVotes(parsed)
             } catch (err) {
-                console.warn('Erreur parsing votes_data, initialisation vide')
                 setVotes({})
             }
         } else {
@@ -68,6 +68,12 @@ export default function VoteModal({
     }
 
     const handleSubmit = () => {
+        // Prevent double submission
+        if (submissionLock.current.isSubmitting()) {
+            setError('Une soumission est déjà en cours. Veuillez patienter.')
+            return
+        }
+
         // Validation : toutes les matières doivent avoir un vote
         const allVoted = modules.every(module => votes[module] === 'validated' || votes[module] === 'retake')
         
@@ -80,12 +86,29 @@ export default function VoteModal({
         const validatedCount = Object.values(votes).filter(v => v === 'validated').length
         const retakeCount = Object.values(votes).filter(v => v === 'retake').length
 
-        // Appeler la fonction de soumission avec les données complètes
-        onSubmit({
+        // Validate vote data
+        const voteData = {
             modules: validatedCount,
             rattrapages: retakeCount,
             votes_data: votes // Stocker le détail des votes
-        })
+        }
+
+        const validation = validateVoteData(voteData)
+        if (!validation.valid) {
+            setError(validation.error)
+            return
+        }
+
+        // Appeler la fonction de soumission avec les données complètes
+        try {
+            submissionLock.current.execute(async () => {
+                await onSubmit(voteData)
+            })
+        } catch (err) {
+            if (err.message !== 'Une soumission est déjà en cours') {
+                setError('Erreur lors de la soumission du vote')
+            }
+        }
     }
 
     if (!isOpen) return null

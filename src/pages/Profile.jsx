@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { predictionsService } from '../services/predictionsService'
 import { settingsService } from '../services/settingsService'
+import LoadingState from '../components/LoadingState'
 import './Profile.css'
 import { ShieldCheck, GraduationCap, Users, BookOpen, Repeat, EyeOff, LayoutGrid } from 'lucide-react'
 
@@ -35,14 +36,14 @@ export default function Profile({ user }) {
             // Et Promise.race pour le timeout
             await Promise.race([
                 Promise.all([
-                    settingsService.getAllSettings().then(({ data }) => setSettings(data || {})).catch(e => console.warn('Settings err:', e)),
-                    predictionsService.calculateUserStats(user.id).then(setStats).catch(e => console.warn('Stats err:', e)),
-                    predictionsService.getPredictionsForUser(user.id).then(({ data }) => setVoters(data || [])).catch(e => console.warn('Predictions err:', e))
+                    settingsService.getAllSettings().then(({ data }) => setSettings(data || {})).catch(() => {}),
+                    predictionsService.calculateUserStats(user.id).then(setStats).catch(() => {}),
+                    predictionsService.getPredictionsForUser(user.id).then(({ data }) => setVoters(data || [])).catch(() => {})
                 ]),
                 timeoutPromise
             ])
         } catch (err) {
-            console.error('Erreur chargement profil:', err)
+            // Silently fail - user will see default values
         } finally {
             if (loading) setLoading(false)
         }
