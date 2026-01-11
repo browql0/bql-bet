@@ -16,13 +16,13 @@ export const AuthProvider = ({ children }) => {
 
         // 1. Initial Session Check (avec sécurité timeout)
         const checkUser = async () => {
-            // Sécurité : si Supabase ne répond pas en 3s, on arrête le chargement
+            // Sécurité : si Supabase ne répond pas en 5s, on arrête le chargement
             const safetyTimer = setTimeout(() => {
-                if (mounted && loading) {
+                if (mounted) {
                     console.warn('⏱️ Auth check timeout - forcing stop loading')
                     setLoading(false)
                 }
-            }, 3000)
+            }, 5000)
 
             try {
                 // Utilisation sécurisée sans destructuring immédiat qui peut throw
@@ -35,15 +35,19 @@ export const AuthProvider = ({ children }) => {
                 if (session?.user) {
                     if (mounted) setSession(session)
 
-                    // Fetch Profile
-                    const { data: profile } = await supabase
+                    // Fetch Profile - Utiliser maybeSingle pour éviter l'erreur si le profil n'existe pas encore
+                    const { data: profile, error: profileError } = await supabase
                         .from('profiles')
                         .select('*')
                         .eq('id', session.user.id)
-                        .single()
+                        .maybeSingle()
+
+                    if (profileError && profileError.code !== 'PGRST116') {
+                        console.error('Erreur chargement profil:', profileError)
+                    }
 
                     if (mounted) {
-                        setUser({ ...session.user, profile })
+                        setUser({ ...session.user, profile: profile || null })
                     }
                 } else {
                     if (mounted) {
@@ -76,14 +80,34 @@ export const AuthProvider = ({ children }) => {
 
             if (session?.user) {
                 setSession(session)
-                // On recharge le profil au changement d'état (ex: login)
-                const { data: profile } = await supabase
+                // On recharge le profil au changement d'état (ex: login, signup)
+                const { data: profile, error: profileError } = await supabase
                     .from('profiles')
                     .select('*')
                     .eq('id', session.user.id)
-                    .single()
+                    .maybeSingle()
 
-                setUser({ ...session.user, profile })
+                if (profileError && profileError.code !== 'PGRST116') {
+                    console.error('Erreur chargement profil:', profileError)
+                }
+
+                // Si le profil n'existe pas encore (inscription récente), attendre un peu et réessayer
+                if (!profile) {
+                    console.log('⏳ Profil non trouvé, attente et nouvelle tentative...')
+                    setTimeout(async () => {
+                        if (mounted) {
+                            const { data: retryProfile } = await supabase
+                                .from('profiles')
+                                .select('*')
+                                .eq('id', session.user.id)
+                                .maybeSingle()
+                            
+                            setUser({ ...session.user, profile: retryProfile || null })
+                        }
+                    }, 1000)
+                } else {
+                    setUser({ ...session.user, profile })
+                }
             } else {
                 setSession(null)
                 setUser(null)
@@ -95,7 +119,8 @@ export const AuthProvider = ({ children }) => {
             mounted = false
             subscription?.unsubscribe()
         }
-    }, [])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []) // Intentionnellement vide - on ne veut s'exécuter qu'une fois au mount
 
     const logOut = async () => {
         await supabase.auth.signOut()

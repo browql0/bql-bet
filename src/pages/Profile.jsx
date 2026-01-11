@@ -4,6 +4,9 @@ import { settingsService } from '../services/settingsService'
 import './Profile.css'
 import { ShieldCheck, GraduationCap, Users, BookOpen, Repeat, EyeOff, LayoutGrid } from 'lucide-react'
 
+// Helper component for UserIcon
+const UserIcon = (props) => <Users {...props} />
+
 export default function Profile({ user }) {
     const [stats, setStats] = useState({ totalVotes: 0, avgModules: 0, avgRattrapages: 0 })
     const [voters, setVoters] = useState([])
@@ -50,48 +53,22 @@ export default function Profile({ user }) {
 
     // Safety check for user profile
     if (!user) {
-        console.warn('⚠️ Profile received null user')
         return (
-            <div className="loading-screen">
-                <div className="loading-content">
-                    <div className="spinner-container">
-                        <div className="spinner"></div>
-                    </div>
-                    <p className="loading-text">Chargement du profil...</p>
-                </div>
+            <div className="page">
+                <LoadingState text="Chargement du profil..." />
             </div>
         )
     }
 
-    // New: Handle missing profile data (e.g. fetch failed or empty object)
+    // Handle missing profile data
     const hasValidProfile = user.profile && typeof user.profile === 'object' && Object.keys(user.profile).length > 0 && user.profile.full_name
 
-    if (!user.profile) {
-        console.warn('⚠️ User présent mais profil manquant dans le composant Profile')
+    if (!user.profile || !hasValidProfile) {
         return (
-            <div className="loading-screen">
-                <div className="loading-content">
-                    <div className="spinner-container">
-                        <div className="spinner"></div>
-                    </div>
-                    <p className="loading-text">Finalisation du profil...</p>
-                    <button
-                        onClick={() => window.location.reload()}
-                        style={{ marginTop: '20px', padding: '10px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '8px', cursor: 'pointer' }}
-                    >
-                        Forcer le rechargement
-                    </button>
-                </div>
-            </div>
-        )
-    }
-
-    if (!hasValidProfile) {
-        console.error('❌ Profil invalide ou manquant:', user.profile)
-        return (
-            <div className="page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '80vh' }}>
+            <div className="page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
                 <div className="alert alert-error">
-                    <ShieldCheck size={20} /> Profil introuvable. Veuillez vous reconnecter.
+                    <ShieldCheck size={20} aria-hidden="true" /> 
+                    <span>Profil introuvable. Veuillez vous reconnecter.</span>
                 </div>
             </div>
         )
@@ -127,7 +104,10 @@ export default function Profile({ user }) {
 
             {/* Détails étudiant */}
             <div className="results-section fade-in" style={{ marginTop: 0 }}>
-                <h2 className="results-title"><UserIcon /> Mes informations</h2>
+                <h2 className="results-title">
+                    <UserIcon size={20} aria-hidden="true" /> 
+                    <span>Mes informations</span>
+                </h2>
                 <div className="info-grid">
                     <div className="info-item">
                         <span className="info-label">Matricule</span>
@@ -169,7 +149,8 @@ export default function Profile({ user }) {
                     {/* Détail des votes */}
                     <div className="results-section slide-up">
                         <h2 className="results-title">
-                            <LayoutGrid /> Détail des prédictions
+                            <LayoutGrid size={20} aria-hidden="true" /> 
+                            <span>Détail des prédictions</span>
                         </h2>
 
                         {voters.length === 0 ? (
@@ -186,7 +167,7 @@ export default function Profile({ user }) {
                                         style={{ animationDelay: `${index * 0.05}s` }}
                                     >
                                         <div className="voter-info">
-                                            <div className="voter-icon">
+                                            <div className="voter-icon" aria-hidden="true">
                                                 {anonymousVotes ? <EyeOff size={16} /> : <UserIcon size={16} />}
                                             </div>
                                             <span className="voter-name">
@@ -194,8 +175,16 @@ export default function Profile({ user }) {
                                             </span>
                                         </div>
                                         <div className="voter-prediction">
-                                            <span><BookOpen size={16} /> {vote.modules}</span>
-                                            <span><Repeat size={16} /> {vote.rattrapages}</span>
+                                            <span>
+                                                <BookOpen size={16} aria-hidden="true" />
+                                                <span className="sr-only">Modules: </span>
+                                                {vote.modules}
+                                            </span>
+                                            <span>
+                                                <Repeat size={16} aria-hidden="true" />
+                                                <span className="sr-only">Rattrapages: </span>
+                                                {vote.rattrapages}
+                                            </span>
                                         </div>
                                     </div>
                                 ))}
@@ -207,6 +196,3 @@ export default function Profile({ user }) {
         </div>
     )
 }
-
-// Helper just for this file
-const UserIcon = (props) => <Users {...props} />

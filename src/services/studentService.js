@@ -70,8 +70,9 @@ export const getStudentByName = (name) => {
 
 /**
  * Vérifie si un matricule est déjà utilisé par un compte
+ * @deprecated Utiliser checkStudentStatus à la place pour une vérification complète
  */
-export const isMatriculeAlreadyUsed = async (matricule) => {
+const _legacyIsMatriculeAlreadyUsed = async (matricule) => {
     try {
         if (!matricule) {
             console.warn('⚠️ Matricule vide fourni à isMatriculeAlreadyUsed');
@@ -213,11 +214,19 @@ export const validateAndCheckName = async (name) => {
     };
 };
 
-// Note: isMatriculeAlreadyUsed devient redondant avec checkStudentStatus mais on le garde pour compatibilité si besoin,
-// ou on le redirige vers le RPC.
+/**
+ * Vérifie si un matricule est déjà utilisé par un compte
+ * Utilise checkStudentStatus pour une vérification complète
+ */
 export const isMatriculeAlreadyUsed = async (matricule) => {
-    const { available } = await checkStudentStatus(matricule);
-    return !available;
+    try {
+        const { available } = await checkStudentStatus(matricule);
+        return !available;
+    } catch (error) {
+        console.error('Erreur lors de la vérification du matricule:', error);
+        // En cas d'erreur, bloquer par sécurité
+        return true;
+    }
 };
 
 export const studentService = {

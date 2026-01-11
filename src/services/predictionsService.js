@@ -15,7 +15,19 @@ export const getMyPredictions = async (userId) => {
 
         if (error) throw error;
 
-        return { data, error: null };
+        // Parser votes_data si présent
+        const parsedData = data?.map(pred => {
+            if (pred.votes_data && typeof pred.votes_data === 'string') {
+                try {
+                    pred.votes_data = JSON.parse(pred.votes_data);
+                } catch (err) {
+                    console.warn('Erreur parsing votes_data:', err);
+                }
+            }
+            return pred;
+        });
+
+        return { data: parsedData || [], error: null };
     } catch (error) {
         return { data: [], error: error.message };
     }
@@ -44,20 +56,47 @@ export const getPredictionsForUser = async (userId) => {
 
 /**
  * Soumet une nouvelle prédiction
+ * @param {string} voterId - ID de l'utilisateur qui vote
+ * @param {string} targetId - ID de l'utilisateur pour qui on vote
+ * @param {number} modules - Nombre de modules validés
+ * @param {number} rattrapages - Nombre de rattrapages
+ * @param {object} votesData - (Optionnel) Détail des votes par matière { "matière": "validated"|"retake" }
  */
-export const submitPrediction = async (voterId, targetId, modules, rattrapages) => {
+export const submitPrediction = async (voterId, targetId, modules, rattrapages, votesData = null) => {
     try {
-        // UPSERT Atomique : Plus rapide, plus sûr, pas de race condition
+        // Vérifier si un vote existe déjà (vote unique - pas de modification)
+        const { data: existing } = await supabase
+            .from('predictions')
+            .select('id')
+            .eq('voter_id', voterId)
+            .eq('target_id', targetId)
+            .maybeSingle();
+
+        if (existing) {
+            return { success: false, error: 'Vous avez déjà voté pour cet étudiant. Les votes ne peuvent pas être modifiés.' };
+        }
+
+        // Préparer les données à insérer
+        const predictionData = {
+            voter_id: voterId,
+            target_id: targetId,
+            modules,
+            rattrapages
+        };
+
+        // Si votes_data est fourni, le stocker (en JSON string si la colonne existe)
+        if (votesData) {
+            // Essayer de stocker dans votes_data si la colonne existe
+            try {
+                predictionData.votes_data = typeof votesData === 'string' ? votesData : JSON.stringify(votesData);
+            } catch (err) {
+                console.warn('Impossible de stocker votes_data, utilisation du format standard');
+            }
+        }
+
         const { error } = await supabase
             .from('predictions')
-            .upsert({
-                voter_id: voterId,
-                target_id: targetId,
-                modules,
-                rattrapages
-            }, {
-                onConflict: 'voter_id, target_id' // Clé unique composée
-            });
+            .insert(predictionData);
 
         if (error) throw error;
 
@@ -69,6 +108,8 @@ export const submitPrediction = async (voterId, targetId, modules, rattrapages) 
             errorMessage = 'Valeurs invalides (0-20)';
         } else if (error.message?.includes('voter_id != target_id')) {
             errorMessage = 'Tu ne peux pas voter pour toi-même';
+        } else if (error.message?.includes('duplicate') || error.message?.includes('unique')) {
+            errorMessage = 'Vous avez déjà voté pour cet étudiant. Les votes ne peuvent pas être modifiés.';
         }
 
         console.error('Erreur vote:', error);

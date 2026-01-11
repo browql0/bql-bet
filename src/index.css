@@ -291,7 +291,7 @@ a:hover {
   min-height: 52px;
 }
 
-.form-input:hover {
+.form-input:hover:not(:disabled) {
   border-color: var(--border-color-hover);
   background: rgba(255, 255, 255, 0.05);
 }
@@ -304,6 +304,11 @@ a:hover {
   transform: translateY(-1px);
 }
 
+.form-input:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
 .form-input::placeholder {
   color: rgba(255, 255, 255, 0.2);
 }
@@ -311,6 +316,17 @@ a:hover {
 .form-input:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.form-input[aria-invalid="true"] {
+  border-color: var(--error);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.form-input[aria-invalid="true"]:focus {
+  border-color: var(--error);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
 }
 
 /* ===== Cards - Glassmorphism ===== */
@@ -372,6 +388,12 @@ a:hover {
   border: 1px solid rgba(245, 158, 11, 0.15);
 }
 
+.alert-info {
+  background: rgba(59, 130, 246, 0.08);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.15);
+}
+
 /* ===== Loading Spinner ===== */
 .loading {
   display: flex;
@@ -425,6 +447,19 @@ a:hover {
   background-clip: text;
 }
 
+/* Screen reader only - accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 /* ===== Animations ===== */
 .fade-in {
   animation: fadeIn 0.5s ease-out forwards;
@@ -456,17 +491,92 @@ a:hover {
   }
 }
 
+/* ===== Utility Classes ===== */
+.mb-md {
+  margin-bottom: var(--space-md);
+}
+
+.mb-lg {
+  margin-bottom: var(--space-lg);
+}
+
+.mt-sm {
+  margin-top: var(--space-sm);
+}
+
+.flex {
+  display: flex;
+}
+
+.flex.items-center {
+  align-items: center;
+}
+
+.gap-sm {
+  gap: var(--space-sm);
+}
+
+.gap-xs {
+  gap: var(--space-xs);
+}
+
+.text-success {
+  color: var(--success);
+}
+
+.slide-down {
+  animation: slideDown 0.4s ease-out forwards;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* ===== Responsive ===== */
+@media (max-width: 768px) {
+  html {
+    font-size: 15px;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  .card {
+    padding: var(--space-lg);
+  }
+}
+
 @media (max-width: 640px) {
   html {
     font-size: 14px;
   }
 
   .card {
-    padding: var(--space-lg);
+    padding: var(--space-md);
   }
 
   h1 {
-    font-size: 2rem;
+    font-size: 1.75rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
   }
 }

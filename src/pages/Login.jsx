@@ -14,12 +14,33 @@ export default function Login({ onNavigate, setUser }) {
         setLoading(true)
         setError('')
 
+        // Validation client-side
+        if (!email.trim()) {
+            setError('Veuillez entrer votre email')
+            setLoading(false)
+            return
+        }
+
+        if (!password) {
+            setError('Veuillez entrer votre mot de passe')
+            setLoading(false)
+            return
+        }
+
+        // Validation email basique
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(email.trim())) {
+            setError('Format d\'email invalide')
+            setLoading(false)
+            return
+        }
+
         try {
-            const { error: authError } = await authService.signIn(email, password)
+            const { error: authError } = await authService.signIn(email.trim(), password)
 
             if (authError) {
                 setError(authError)
-                // Pas besoin de setLoading(false) ici car finally le fera
+                setLoading(false)
                 return
             }
 
@@ -28,9 +49,9 @@ export default function Login({ onNavigate, setUser }) {
             localStorage.removeItem('user-logged-out')
 
         } catch (err) {
-            setError(err.message || 'Erreur de connexion')
-        } finally {
-            if (loading) setLoading(false) // On ne stop le loading que si on est encore là (si redirect, le composant est démonté)
+            console.error('Erreur connexion:', err)
+            setError(err.message || 'Erreur de connexion. Veuillez réessayer.')
+            setLoading(false)
         }
     }
 
@@ -63,6 +84,9 @@ export default function Login({ onNavigate, setUser }) {
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
                                     autoComplete="email"
+                                    aria-label="Email étudiant"
+                                    aria-invalid={error && error.includes('email') ? 'true' : 'false'}
+                                    disabled={loading}
                                 />
                             </div>
                         </div>
@@ -81,6 +105,9 @@ export default function Login({ onNavigate, setUser }) {
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
                                     autoComplete="current-password"
+                                    aria-label="Mot de passe"
+                                    aria-invalid={error && error.includes('mot de passe') ? 'true' : 'false'}
+                                    disabled={loading}
                                 />
                             </div>
                         </div>
@@ -88,9 +115,17 @@ export default function Login({ onNavigate, setUser }) {
                         <button
                             type="submit"
                             className="btn btn-primary btn-full btn-lg mt-sm"
-                            disabled={loading}
+                            disabled={loading || !email.trim() || !password}
+                            aria-label={loading ? 'Connexion en cours...' : 'Se connecter'}
                         >
-                            {loading ? <div className="spinner" style={{ width: 24, height: 24, borderWidth: 2 }}></div> : 'Se connecter'}
+                            {loading ? (
+                                <>
+                                    <div className="spinner" style={{ width: 20, height: 20, borderWidth: 2 }} aria-hidden="true"></div>
+                                    <span>Connexion...</span>
+                                </>
+                            ) : (
+                                'Se connecter'
+                            )}
                         </button>
                     </form>
 

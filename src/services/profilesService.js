@@ -70,9 +70,12 @@ export const isAdmin = async (userId) => {
 
 /**
  * Récupère les utilisateurs votables (actifs)
+ * Note: Utilise la vue 'votable_users' qui doit inclure tous les profils avec active=true
+ * Si la vue n'existe pas, essaie directement depuis profiles
  */
 export const getVotableUsers = async (excludeUserId = null) => {
     try {
+        // Essayer d'abord avec la vue votable_users
         let query = supabase
             .from('votable_users')
             .select('*, profile:profiles(*)')
@@ -83,7 +86,57 @@ export const getVotableUsers = async (excludeUserId = null) => {
             query = query.neq('profile_id', excludeUserId);
         }
 
-        const { data, error } = await query;
+        let { data, error } = await query;
+
+        // Si la vue n'existe pas ou erreur, essayer directement depuis profiles
+        if (error && (error.code === '42P01' || error.message?.includes('relation') || error.message?.includes('does not exist'))) {
+            console.warn('Vue votable_users non trouvée, utilisation directe de profiles');
+            
+            let profilesQuery = supabase
+                .from('profiles')
+                .select('*')
+                .eq('active', true)
+                .order('full_name');
+
+            if (excludeUserId) {
+                profilesQuery = profilesQuery.neq('id', excludeUserId);
+            }
+
+            const { data: profilesData, error: profilesError } = await profilesQuery;
+            
+            if (profilesError) throw profilesError;
+
+            // Transformer les données pour correspondre au format attendu
+            data = profilesData?.map(profile => ({
+                id: profile.id,
+                profile_id: profile.id,
+                full_name: profile.full_name,
+                active: profile.active,
+                profile: profile
+            })) || [];
+            
+            error = null;
+        }
+
+        if (error) throw error;
+
+        return { data: data || [], error: null };
+    } catch (error) {
+        console.error('Erreur getVotableUsers:', error);
+        return { data: [], error: error.message };
+    }
+};
+
+/**
+ * Récupère tous les utilisateurs votables (sans exclusion)
+ */
+export const getAllVotableUsers = async () => {
+    try {
+        const { data, error } = await supabase
+            .from('votable_users')
+            .select('*, profile:profiles(*)')
+            .eq('active', true)
+            .order('full_name');
 
         if (error) throw error;
 
@@ -92,8 +145,6 @@ export const getVotableUsers = async (excludeUserId = null) => {
         return { data: [], error: error.message };
     }
 };
-
-// ... (Autres fonctions de lecture gardées, mais fonctions d'écriture Admin supprimées car doivent passer par RPC/Admin Console)
 
 export const profilesService = {
     getProfile,

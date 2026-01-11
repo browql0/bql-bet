@@ -50,10 +50,63 @@ export const signUp = async (email, password, studentInfo) => {
         if (authError) return { data: null, error: authError.message };
         if (!authData.user) return { data: null, error: 'Erreur lors de la création du compte' };
 
-        // 3. Le profil est créé automatiquement par le Trigger SQL (handle_new_user)
-        // On n'a plus rien à faire ici manuellement.
+        // 3. Créer le profil manuellement si le trigger SQL ne l'a pas fait
+        // Attendre un peu pour laisser le trigger faire son travail
+        await new Promise(resolve => setTimeout(resolve, 500));
 
-        return { data: authData, error: null };
+        // Vérifier si le profil existe déjà (créé par trigger)
+        const { data: existingProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('id', authData.user.id)
+            .maybeSingle();
+
+        // Si le profil n'existe pas, le créer manuellement
+        if (!existingProfile) {
+            console.log('📝 Création manuelle du profil pour:', authData.user.id);
+            
+            // Préparer les données du profil
+            const profileData = {
+                id: authData.user.id,
+                full_name: studentInfo.nom,
+                matricule: studentInfo.matricule,
+                active: true, // IMPORTANT : Actif par défaut pour apparaître dans les votes
+                role: 'student'
+            };
+
+            // Ajouter groupe et sous_groupe si disponibles
+            if (studentInfo.gp) {
+                profileData.groupe = studentInfo.gp;
+            }
+            if (studentInfo.sgp) {
+                profileData.sous_groupe = studentInfo.sgp;
+            }
+            
+            const { error: profileError } = await supabase
+                .from('profiles')
+                .insert(profileData);
+
+            if (profileError) {
+                console.error('❌ Erreur création profil:', profileError);
+                // Ne pas bloquer l'inscription si l'insertion échoue (peut être un problème de permissions)
+                // Le trigger devrait créer le profil, ou un admin pourra le faire
+                // Mais on retourne quand même le succès pour que l'utilisateur puisse se connecter
+            } else {
+                console.log('✅ Profil créé avec succès et marqué comme actif');
+            }
+        } else {
+            // Si le profil existe déjà, s'assurer qu'il est actif pour apparaître dans les votes
+            const { error: updateError } = await supabase
+                .from('profiles')
+                .update({ active: true })
+                .eq('id', authData.user.id);
+
+            if (updateError) {
+                console.warn('⚠️ Impossible de mettre à jour active:', updateError.message);
+            } else {
+                console.log('✅ Profil mis à jour: active=true');
+            }
+        }
 
         return { data: authData, error: null };
     } catch (error) {

@@ -60,6 +60,14 @@ export default function Signup({ onNavigate }) {
             return
         }
 
+        // Validation email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(email.trim())) {
+            setError('Format d\'email invalide')
+            setLoading(false)
+            return
+        }
+
         if (password.length < 6) {
             setError('Le mot de passe doit contenir au moins 6 caractères')
             setLoading(false)
@@ -144,7 +152,9 @@ export default function Signup({ onNavigate }) {
                                             setError('')
                                         }}
                                         required
-                                        disabled={loading}
+                                        disabled={loading || checking}
+                                        aria-label="Nom complet de l'étudiant"
+                                        aria-describedby="name-validation"
                                     />
                                 </div>
                                 <button
@@ -153,8 +163,15 @@ export default function Signup({ onNavigate }) {
                                     onClick={checkName}
                                     disabled={!name.trim() || checking || loading}
                                     style={{ minWidth: '60px' }}
+                                    aria-label={checking ? 'Vérification en cours...' : foundStudent ? 'Nom validé' : 'Vérifier le nom'}
                                 >
-                                    {checking ? <div className="spinner" style={{ width: 20, height: 20 }}></div> : foundStudent ? <Check size={20} /> : <Search size={20} />}
+                                    {checking ? (
+                                        <div className="spinner" style={{ width: 20, height: 20 }} aria-hidden="true"></div>
+                                    ) : foundStudent ? (
+                                        <Check size={20} aria-hidden="true" />
+                                    ) : (
+                                        <Search size={20} aria-hidden="true" />
+                                    )}
                                 </button>
                             </div>
 
@@ -186,6 +203,9 @@ export default function Signup({ onNavigate }) {
                                             onChange={(e) => setEmail(e.target.value)}
                                             required
                                             disabled={loading}
+                                            autoComplete="email"
+                                            aria-label="Email personnel"
+                                            aria-invalid={error && error.includes('email') ? 'true' : 'false'}
                                         />
                                     </div>
                                 </div>
@@ -202,6 +222,10 @@ export default function Signup({ onNavigate }) {
                                             onChange={(e) => setPassword(e.target.value)}
                                             required
                                             disabled={loading}
+                                            autoComplete="new-password"
+                                            minLength={6}
+                                            aria-label="Mot de passe (minimum 6 caractères)"
+                                            aria-invalid={error && error.includes('mot de passe') ? 'true' : 'false'}
                                         />
                                     </div>
                                 </div>
@@ -218,6 +242,9 @@ export default function Signup({ onNavigate }) {
                                             onChange={(e) => setConfirmPassword(e.target.value)}
                                             required
                                             disabled={loading}
+                                            autoComplete="new-password"
+                                            aria-label="Confirmation du mot de passe"
+                                            aria-invalid={error && error.includes('correspondent') ? 'true' : 'false'}
                                         />
                                     </div>
                                 </div>
